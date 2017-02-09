@@ -1,5 +1,6 @@
 package co.alexwilkinson.jotter.util;
 
+import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
@@ -56,7 +57,27 @@ public class DBManager {
         DatabaseHelper db = new DatabaseHelper(context);
         sqlDB = db.getWritableDatabase();
     }
+    //CREATE --------------------------------------------------------------
 
+    //create a new user
+    public long insertNewUser(ContentValues values){
+        long id = sqlDB.insert(tableUsers,"",values);
+        sqlDB.close();
+
+        return id;
+    }
+
+    //create a new jotter
+    public long insertNewJotter(ContentValues values){
+        long id = sqlDB.insert(tableJotter, "", values);
+        sqlDB.close();
+
+        return id;
+    }
+
+    //READ --------------------------------------------------------------
+
+    //Select query used to select the UserTable
     public Cursor queryUserTable(String[]columns, String where, String[]whereArgs, String sortOrder){
 
         SQLiteQueryBuilder qb = new SQLiteQueryBuilder();
@@ -67,6 +88,7 @@ public class DBManager {
         return cursor;
     }
 
+    //Select query used to select the JotterTable
     public Cursor queryJotterTable(String[]columns, String where, String[]whereArgs, String sortOrder){
 
         SQLiteQueryBuilder qb = new SQLiteQueryBuilder();
@@ -77,6 +99,11 @@ public class DBManager {
         return cursor;
     }
 
+    /**
+     * method that returns true if username already exists or false if not
+     * @param username
+     * @return
+     */
     public boolean doesUserExist(String username){
         Cursor cursor = queryUserTable(null,userColUsername,new String[]{username},null);
         String user = "";
@@ -89,7 +116,13 @@ public class DBManager {
         return false;
     }
 
-    public ArrayList userData(String username){
+    /**
+     * Read method to take all of the values from the database that belong to the
+     * selected user
+     * @param username
+     * @return
+     */
+    public ArrayList ReadUserData(String username){
         ArrayList<UserDataObject> userData = new ArrayList<>();
 
         Cursor cursor = queryJotterTable(null,jotterColUsername,new String[]{username},null);
@@ -109,7 +142,37 @@ public class DBManager {
         return userData;
     }
 
+    //UPDATE --------------------------------------------------------------
 
+    public long updateUser(String username, ContentValues values){
+        long id = sqlDB.update(tableUsers, values, userColUsername, new String[]{username});
+        sqlDB.close();
+
+        return id;
+    }
+
+    public long updateJotter(String page, ContentValues values){
+        long id = sqlDB.update(tableUsers, values, jotterColPage, new String[]{page});
+        sqlDB.close();
+
+        return id;
+    }
+
+    //DELETE --------------------------------------------------------------
+
+    public long deleteUser(String username){
+        long id = sqlDB.delete(tableUsers, userColUsername, new String[]{username});
+        sqlDB.close();
+
+        return id;
+    }
+
+    public long deleteJotter(String page){
+        long id = sqlDB.delete(tableJotter, jotterColPage, new String[]{page});
+        sqlDB.close();
+
+        return id;
+    }
 
     public static class DatabaseHelper extends SQLiteOpenHelper{
         private Context context;
