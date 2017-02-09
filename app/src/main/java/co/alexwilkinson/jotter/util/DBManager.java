@@ -15,6 +15,7 @@ import java.util.ArrayList;
 
 public class DBManager {
     private SQLiteDatabase sqlDB;
+    private DatabaseHelper db;
     public static final String dbName = "jotter";
     public static final int dbVersion = 1;
 
@@ -54,15 +55,29 @@ public class DBManager {
                     + ");";
 
     public DBManager(Context context){
-        DatabaseHelper db = new DatabaseHelper(context);
+        db = new DatabaseHelper(context);
         sqlDB = db.getWritableDatabase();
     }
+
+    public static boolean databaseExists(Context context){
+        SQLiteDatabase dbTest = null;
+        String dbpath = context.getDatabasePath(dbName).toString();
+        System.out.println("Database path: "+dbpath);
+
+        try{
+            dbTest = SQLiteDatabase.openDatabase(dbpath,null,SQLiteDatabase.OPEN_READONLY);
+            dbTest.close();
+        }catch (Exception ex){ex.getStackTrace();}
+        return dbTest !=null;
+    }
+
+
     //CREATE --------------------------------------------------------------
 
     //create a new user
     public long insertNewUser(ContentValues values){
         long id = sqlDB.insert(tableUsers,"",values);
-        sqlDB.close();
+        db.close();
 
         return id;
     }
@@ -70,7 +85,7 @@ public class DBManager {
     //create a new jotter
     public long insertNewJotter(ContentValues values){
         long id = sqlDB.insert(tableJotter, "", values);
-        sqlDB.close();
+        db.close();
 
         return id;
     }
@@ -78,7 +93,8 @@ public class DBManager {
     //READ --------------------------------------------------------------
 
     //Select query used to select the UserTable
-    public Cursor queryUserTable(String[]columns, String where, String[]whereArgs, String sortOrder){
+    public Cursor queryUserTable(
+            String[]columns, String where, String[]whereArgs, String sortOrder){
 
         SQLiteQueryBuilder qb = new SQLiteQueryBuilder();
         qb.setTables(tableUsers);
@@ -105,9 +121,12 @@ public class DBManager {
      * @return
      */
     public boolean doesUserExist(String username){
-        Cursor cursor = queryUserTable(null,userColUsername,new String[]{username},null);
+
+        Cursor cursor = queryUserTable(null,userColUsername +"= ?",new String[]{username},null);
         String user = "";
-        user = cursor.getString(cursor.getColumnIndex(DBManager.userColUsername));
+        if(cursor.moveToFirst()){
+            user = cursor.getString(cursor.getColumnIndex(DBManager.userColUsername));
+        }
 
         if(user.equalsIgnoreCase(username)){
             return true;
@@ -125,7 +144,7 @@ public class DBManager {
     public ArrayList ReadUserData(String username){
         ArrayList<UserDataObject> userData = new ArrayList<>();
 
-        Cursor cursor = queryJotterTable(null,jotterColUsername,new String[]{username},null);
+        Cursor cursor = queryJotterTable(null,jotterColUsername +"= ?",new String[]{username},null);
 
         if(cursor.moveToFirst()){
             do{
@@ -145,14 +164,14 @@ public class DBManager {
     //UPDATE --------------------------------------------------------------
 
     public long updateUser(String username, ContentValues values){
-        long id = sqlDB.update(tableUsers, values, userColUsername, new String[]{username});
+        long id = sqlDB.update(tableUsers, values, userColUsername +" = ? ", new String[]{username});
         sqlDB.close();
 
         return id;
     }
 
     public long updateJotter(String page, ContentValues values){
-        long id = sqlDB.update(tableUsers, values, jotterColPage, new String[]{page});
+        long id = sqlDB.update(tableUsers, values, jotterColPage +" = ? ", new String[]{page});
         sqlDB.close();
 
         return id;
@@ -161,14 +180,14 @@ public class DBManager {
     //DELETE --------------------------------------------------------------
 
     public long deleteUser(String username){
-        long id = sqlDB.delete(tableUsers, userColUsername, new String[]{username});
+        long id = sqlDB.delete(tableUsers, userColUsername +" = ? ", new String[]{username});
         sqlDB.close();
 
         return id;
     }
 
     public long deleteJotter(String page){
-        long id = sqlDB.delete(tableJotter, jotterColPage, new String[]{page});
+        long id = sqlDB.delete(tableJotter, jotterColPage +" = ? ", new String[]{page});
         sqlDB.close();
 
         return id;

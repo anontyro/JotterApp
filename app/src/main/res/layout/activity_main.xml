@@ -17,13 +17,11 @@
         android:layout_height="wrap_content"
         android:id="@+id/textView" />
 
-    <EditText
+    <AutoCompleteTextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:inputType="textPersonName"
-        android:ems="10"
-        android:id="@+id/etLoginUsername"
-        android:hint="User" />
+        android:id="@+id/tvAutoLoginName"
+        android:completionHint="username" />
 
     <Button
         android:text="Go"
